@@ -1,6 +1,6 @@
-// lib/screens/mark_attendance_page.dart
 import 'package:flutter/material.dart';
 import '../services/attendance_api.dart';
+import 'barcode_scanner_page.dart';
 
 class MarkAttendancePage extends StatefulWidget {
   const MarkAttendancePage({super.key});
@@ -14,16 +14,6 @@ class _MarkAttendancePageState extends State<MarkAttendancePage>
   final _codigoController = TextEditingController();
   final _attendanceApi = AttendanceApi();
 
-  // Tus locales (puedes ajustar nombres / ids según tu BD)
-  final List<Map<String, dynamic>> _locales = const [
-    {'id': 1, 'nombre': 'Mulchén'},
-    {'id': 2, 'nombre': 'Los Ángeles'},
-    {'id': 3, 'nombre': 'Santa Bárbara'},
-    {'id': 10, 'nombre': 'Laja'},
-    {'id': 12, 'nombre': 'Angol'},
-  ];
-
-  int? _localSeleccionado;
   bool _loading = false;
   String? _message;
   bool _messageIsError = false;
@@ -35,8 +25,6 @@ class _MarkAttendancePageState extends State<MarkAttendancePage>
   @override
   void initState() {
     super.initState();
-    // Por defecto seleccionamos el primer local
-    _localSeleccionado = _locales.first['id'] as int;
 
     _animController = AnimationController(
       vsync: this,
@@ -66,11 +54,28 @@ class _MarkAttendancePageState extends State<MarkAttendancePage>
     super.dispose();
   }
 
+  Future<void> _abrirEscaner() async {
+    final result = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (_) => const BarcodeScannerPage(),
+      ),
+    );
+
+    if (result != null && result.isNotEmpty) {
+      setState(() {
+        _codigoController.text = result;
+      });
+      // opcional: podrías llamar automáticamente a _marcarAsistencia();
+    }
+  }
+
   Future<void> _marcarAsistencia() async {
-    if (_localSeleccionado == null || _codigoController.text.trim().isEmpty) {
+    final codigo = _codigoController.text.trim();
+
+    if (codigo.isEmpty) {
       setState(() {
         _messageIsError = true;
-        _message = 'Selecciona un local e ingresa el código de barra.';
+        _message = 'Ingresa o escanea un código de barra.';
       });
       return;
     }
@@ -81,8 +86,7 @@ class _MarkAttendancePageState extends State<MarkAttendancePage>
     });
 
     final result = await _attendanceApi.marcarAsistencia(
-      localId: _localSeleccionado!,
-      codigoBarra: _codigoController.text.trim(),
+      codigoBarra: codigo,
     );
 
     if (!mounted) return;
@@ -94,7 +98,6 @@ class _MarkAttendancePageState extends State<MarkAttendancePage>
     });
 
     if (result['ok'] == true) {
-      // limpiar campo código para siguiente escaneo
       _codigoController.clear();
     }
   }
@@ -141,7 +144,9 @@ class _MarkAttendancePageState extends State<MarkAttendancePage>
                       ],
                     ),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 22, vertical: 26),
+                      horizontal: 22,
+                      vertical: 26,
+                    ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -173,7 +178,7 @@ class _MarkAttendancePageState extends State<MarkAttendancePage>
                                   style: textTheme.titleLarge,
                                 ),
                                 Text(
-                                  'Actualiza el estado de la entrada',
+                                  'Escanea o ingresa el código de la entrada',
                                   style: textTheme.bodyMedium?.copyWith(
                                     color: Colors.grey[600],
                                   ),
@@ -184,56 +189,42 @@ class _MarkAttendancePageState extends State<MarkAttendancePage>
                         ),
                         const SizedBox(height: 20),
 
-                        // Selección de local (solo para enviar el local_id que ya existe en BD)
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Local',
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: cs.primary,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        DropdownButtonFormField<int>(
-                          value: _localSeleccionado,
-                          decoration: const InputDecoration(
-                            hintText: 'Selecciona un local',
-                          ),
-                          items: _locales
-                              .map(
-                                (loc) => DropdownMenuItem<int>(
-                                  value: loc['id'] as int,
-                                  child: Text(
-                                    '${loc['nombre']} (ID ${loc['id']})',
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              _localSeleccionado = value;
-                            });
-                          },
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Código de barra (luego lo llenaremos con escáner)
                         TextField(
                           controller: _codigoController,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Código de barra',
-                            prefixIcon: Icon(Icons.confirmation_number_outlined),
+                            prefixIcon: const Icon(
+                              Icons.confirmation_number_outlined,
+                            ),
                             hintText: 'Ej: 7803600002459',
+                            suffixIcon: IconButton(
+                              tooltip: 'Escanear con cámara',
+                              icon: const Icon(Icons.camera_alt_rounded),
+                              onPressed: _abrirEscaner,
+                            ),
                           ),
                           keyboardType: TextInputType.number,
                         ),
 
+                        const SizedBox(height: 12),
+
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton.icon(
+                            onPressed: _abrirEscaner,
+                            icon: Icon(
+                              Icons.camera_alt_rounded,
+                              color: cs.primary,
+                            ),
+                            label: Text(
+                              'Escanear con cámara',
+                              style: TextStyle(color: cs.primary),
+                            ),
+                          ),
+                        ),
+
                         const SizedBox(height: 8),
 
-                        // Mensaje de resultado
                         AnimatedSwitcher(
                           duration: const Duration(milliseconds: 250),
                           child: _message == null
@@ -242,7 +233,9 @@ class _MarkAttendancePageState extends State<MarkAttendancePage>
                                   key: ValueKey(_message),
                                   margin: const EdgeInsets.only(top: 8),
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 8),
+                                    horizontal: 10,
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: _messageIsError
                                         ? Colors.red.withOpacity(0.08)
@@ -284,7 +277,6 @@ class _MarkAttendancePageState extends State<MarkAttendancePage>
 
                         const SizedBox(height: 16),
 
-                        // Botón
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
@@ -303,16 +295,12 @@ class _MarkAttendancePageState extends State<MarkAttendancePage>
                                   ? 'Registrando asistencia...'
                                   : 'Marcar asistencia',
                             ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: cs.primary,
-                              foregroundColor: Colors.white,
-                            ),
                           ),
                         ),
 
                         const SizedBox(height: 4),
                         Text(
-                          'Los campos estado, fecha_asistencia y usuario se actualizan en el backend.',
+                          'El backend actualiza estado, fecha_asistencia y usuario según el token.',
                           textAlign: TextAlign.center,
                           style: textTheme.bodySmall?.copyWith(
                             color: Colors.grey[600],
