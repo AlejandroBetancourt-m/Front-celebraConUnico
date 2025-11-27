@@ -16,6 +16,70 @@ class HomePage extends StatelessWidget {
     );
   }
 
+  Future<void> _confirmLogout(BuildContext context) async {
+    final cs = Theme.of(context).colorScheme;
+
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false, 
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: cs.primary.withOpacity(0.1),
+                ),
+                child: Icon(
+                  Icons.logout_rounded,
+                  color: cs.primary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Text('Cerrar sesión'),
+            ],
+          ),
+          content: const Text(
+            '¿Estás seguro que quieres cerrar sesión?\n'
+            'Tendrás que ingresar nuevamente con tu usuario y contraseña.',
+          ),
+          actionsPadding: const EdgeInsets.only(
+            right: 16,
+            bottom: 10,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: cs.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('Cerrar sesión'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldLogout == true) {
+      await _logout(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -28,7 +92,7 @@ class HomePage extends StatelessWidget {
           IconButton(
             tooltip: 'Cerrar sesión',
             icon: const Icon(Icons.logout_rounded),
-            onPressed: () => _logout(context),
+            onPressed: () => _confirmLogout(context),
           ),
         ],
       ),
@@ -95,7 +159,7 @@ class HomePage extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Desde aquí podrás marcar asistencia escaneando los códigos de barra de las entradas y revisar el resumen por local.',
+                          'Desde aquí podrás marcar asistencia escaneando los códigos de barra de las entradas.',
                           textAlign: TextAlign.center,
                           style: textTheme.bodyMedium?.copyWith(
                             color: Colors.grey[700],
@@ -205,7 +269,6 @@ class _ActionButton extends StatelessWidget {
   }
 }
 
-// Pequeña extensión para oscurecer un color un poco
 extension on Color {
   Color darken([double amount = .12]) {
     final hsl = HSLColor.fromColor(this);
