@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_storage.dart';
+import 'mark_attendance.dart';
 import 'login_page.dart';
 
 class HomePage extends StatelessWidget {
@@ -102,7 +103,7 @@ class HomePage extends StatelessWidget {
                         ),
                         const SizedBox(height: 22),
 
-                        // Botones de acciones futuras
+                        // Botones de acciones
                         Row(
                           children: [
                             Expanded(
@@ -110,12 +111,10 @@ class HomePage extends StatelessWidget {
                                 icon: Icons.check_circle_outline,
                                 label: 'Marcar asistencia',
                                 onTap: () {
-                                  // aquí después llamaremos a la pantalla de escaneo
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Luego conectamos esto con la pantalla de escaneo.',
-                                      ),
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const MarkAttendancePage(),
                                     ),
                                   );
                                 },
