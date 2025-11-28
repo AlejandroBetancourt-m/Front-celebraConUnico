@@ -3,6 +3,7 @@ import '../services/auth_api.dart';
 import 'home_page.dart';
 import '../utils/color_utils.dart';
 import '../services/auth_storage.dart';
+import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -28,76 +29,75 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _submit() async {
-  if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) return;
 
-  setState(() => _isLoading = true);
+    setState(() => _isLoading = true);
 
-  try {
-    final rut  = _rutController.text.trim();
-    final pass = _passController.text;
+    try {
+      final rut = _rutController.text.trim();
+      final pass = _passController.text;
 
-    // Llamada a la API: devuelve Map<String, dynamic>
-    final result = await _authApi.login(
-      rut: rut,
-      contrasena: pass,
-    );
-
-    if (!mounted) return;
-
-    // result['ok'] viene del backend (true/false)
-    if (result['ok'] != true) {
-      final msg = result['message']?.toString() ?? 'Credenciales inválidas';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg)),
+      // Llamada a la API: devuelve Map<String, dynamic>
+      final result = await _authApi.login(
+        rut: rut,
+        contrasena: pass,
       );
-      return;
-    }
 
-    // Token
-    final token = (result['token'] ?? '') as String;
+      if (!mounted) return;
 
-    // Datos de usuario (si tu backend los envía así)
-    final user = (result['user'] ?? {}) as Map<String, dynamic>;
-    final nombre   = (user['nombre'] ?? '') as String;
-    final apellido = (user['apellido'] ?? '') as String;
+      // result['ok'] viene del backend (true/false)
+      if (result['ok'] != true) {
+        final msg = result['message']?.toString() ?? 'Credenciales inválidas';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg)),
+        );
+        return;
+      }
 
-    final nombreMostrado = [nombre, apellido]
-        .where((s) => s.trim().isNotEmpty)
-        .join(' ')
-        .trim();
+      // Token
+      final token = (result['token'] ?? '') as String;
 
-    // Guardar en storage para usar en Drawer / requests
-    await _authStorage.saveToken(token);
-    await _authStorage.saveUserInfo(
-      nombre: nombre,
-      lastName: apellido,
-    );
+      // Datos de usuario (si tu backend los envía así)
+      final user = (result['user'] ?? {}) as Map<String, dynamic>;
+      final nombre = (user['nombre'] ?? '') as String;
+      final apellido = (user['apellido'] ?? '') as String;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Bienvenido ${nombreMostrado.isEmpty ? 'Usuario' : nombreMostrado}',
+      final nombreMostrado = [nombre, apellido]
+          .where((s) => s.trim().isNotEmpty)
+          .join(' ')
+          .trim();
+
+      // Guardar en storage para usar en Drawer / requests
+      await _authStorage.saveToken(token);
+      await _authStorage.saveUserInfo(
+        nombre: nombre,
+        lastName: apellido,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Bienvenido ${nombreMostrado.isEmpty ? 'Usuario' : nombreMostrado}',
+          ),
         ),
-      ),
-    );
+      );
 
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => const HomePage(),
-      ),
-    );
-  } catch (e) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error inesperado: $e')),
-    );
-  } finally {
-    if (mounted) {
-      setState(() => _isLoading = false);
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => const HomePage(),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error inesperado: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -246,6 +246,27 @@ class _LoginPageState extends State<LoginPage> {
                                   : const Text('Ingresar'),
                             ),
                           ),
+
+                          const SizedBox(height: 8),
+
+                          // 🔹 NUEVO: botón para crear usuario
+                          TextButton(
+                            onPressed: _isLoading
+                                ? null
+                                : () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) => const RegisterPage(),
+                                      ),
+                                    );
+                                  },
+                            child: const Text(
+                              '¿No tienes cuenta? Crear usuario',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -267,5 +288,3 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-
-
