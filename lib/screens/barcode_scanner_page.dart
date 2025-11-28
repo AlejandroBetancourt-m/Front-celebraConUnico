@@ -35,10 +35,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
       ),
       body: Stack(
         children: [
-          MobileScanner(
-            onDetect: _onDetect,
-          ),
-          // Overlay con un recuadro bonito
+          MobileScanner(onDetect: _onDetect),
           Center(
             child: Container(
               width: 260,
@@ -58,7 +55,6 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
               ),
             ),
           ),
-          // Texto arriba
           Positioned(
             top: 24,
             left: 16,
@@ -73,7 +69,6 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
               ),
             ),
           ),
-          // Botón cerrar abajo
           Positioned(
             bottom: 30,
             left: 16,

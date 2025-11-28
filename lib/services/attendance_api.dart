@@ -3,8 +3,7 @@ import 'package:http/http.dart' as http;
 import 'auth_storage.dart';
 
 class AttendanceApi {
-  // Ajusta esta IP para que tu celu vea el backend
-  static const String baseUrl = 'http://192.168.2.181:8000/api';
+  static const String baseUrl = 'http://localhost:8000/api';
 
   final AuthStorage _storage = AuthStorage();
 

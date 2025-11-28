@@ -72,13 +72,13 @@ class _RegisterPageState extends State<RegisterPage>
     final rut = _rutController.text.trim();
     final nombre = _nombreController.text.trim();
     final apellido = _apellidoController.text.trim();
-    final pass = _passController.text;
+    final contrasena = _passController.text;
 
     final result = await _authApi.register(
       rut: rut,
       nombre: nombre,
       apellido: apellido,
-      contrasena: pass,
+      contrasena: contrasena,
     );
 
     if (!mounted) return;
