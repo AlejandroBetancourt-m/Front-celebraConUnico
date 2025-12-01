@@ -4,7 +4,7 @@ import 'auth_storage.dart';
 
 class StatsApi {
   // misma baseUrl que AuthApi
-  static const String baseUrl = 'http://localhost:8000/api';
+  static const String baseUrl = 'http://192.168.1.210:8000/api';
 
   final AuthStorage _storage = AuthStorage();
 

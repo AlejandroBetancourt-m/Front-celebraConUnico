@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 class AuthApi {
   // ⚠️ Si pruebas en dispositivo físico, cambia localhost por la IP de tu PC.
   // Ejemplo: 'http://192.168.0.10:8000/api'
-  static const String _baseUrl = 'http://localhost:8000/api';
+  static const String _baseUrl = 'http://192.168.1.210:8000/api';
 
   final http.Client _client = http.Client();
 
